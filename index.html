@@ -8,7 +8,7 @@
   <style>
     :root { color-scheme: dark; }
     * { box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; }
+    html, body { width: 100%; height: 100%; min-height: 100%; }
     body {
       margin: 0;
       overflow: hidden;
@@ -18,12 +18,17 @@
     .screen {
       position: relative;
       width: 100vw;
+      height: 100vh;
       height: 100svh;
       overflow: hidden;
       background: #000;
     }
     .reading {
       position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
       inset: 0;
       width: 100%;
       height: 100%;
@@ -38,27 +43,32 @@
       max-width: 34rem;
       margin: auto;
       text-wrap: pretty;
+      overflow-wrap: break-word;
       animation: appear .35s ease-out both;
     }
     .beat p {
       margin: 0;
       font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Baskerville, Georgia, "Times New Roman", serif;
       font-weight: 400;
+      font-size: 1.6rem;
       font-size: clamp(1.45rem, 5.2vw, 1.85rem);
       line-height: 1.46;
       letter-spacing: -.012em;
     }
     .beat.title p {
+      font-size: 4rem;
       font-size: clamp(3.2rem, 11vw, 5.2rem);
       line-height: .98;
       letter-spacing: -.05em;
     }
     .beat.section p {
+      font-size: 3.3rem;
       font-size: clamp(2.7rem, 9.5vw, 4.4rem);
       line-height: 1;
       letter-spacing: -.045em;
     }
     .beat.quote p {
+      font-size: 2.4rem;
       font-size: clamp(2rem, 7vw, 3rem);
       line-height: 1.16;
       font-style: italic;
@@ -77,10 +87,14 @@
       position: fixed;
       z-index: 2;
       left: 50%;
+      bottom: 1.25rem;
       bottom: max(1.25rem, env(safe-area-inset-bottom));
       width: 2.75rem;
       height: 2.75rem;
       padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       display: grid;
       place-items: center;
       transform: translateX(-50%);
@@ -122,7 +136,7 @@
 <body>
   <main class="screen" aria-label="Animated reading">
     <section class="reading">
-      <div class="beat title" id="beat" aria-live="polite" aria-atomic="true"></div>
+      <div class="beat title" id="beat" aria-live="polite" aria-atomic="true"><p>I, Smartphone: My Family Tree</p></div>
     </section>
     <button class="play" id="play" aria-label="Play reading">
       <span class="triangle" aria-hidden="true"></span>
@@ -130,7 +144,7 @@
   </main>
 
   <script>
-    const beats = [
+    var beats = [
           {
                 "text": "I, Smartphone: My Family Tree",
                 "kind": "title"
@@ -436,20 +450,20 @@
                 "kind": "quote"
           }
     ];
-    const beatEl = document.querySelector("#beat");
-    const playEl = document.querySelector("#play");
-    const readingEl = document.querySelector(".reading");
-    let index = 0;
-    let playing = false;
-    let timer;
-    let holdTimes = [];
-    let typingSpeeds = [];
-    let character = 0;
-    let phase = "idle";
-    const deviceDrift = .7 + Math.random() * .8;
+    var beatEl = document.querySelector("#beat");
+    var playEl = document.querySelector("#play");
+    var readingEl = document.querySelector(".reading");
+    var index = 0;
+    var playing = false;
+    var timer = null;
+    var holdTimes = [];
+    var typingSpeeds = [];
+    var character = 0;
+    var phase = "idle";
+    var deviceDrift = .7 + Math.random() * .8;
 
     function randomHoldTimes() {
-      return beats.map(beat => {
+      return beats.map(function (beat) {
         if (beat.kind === "title" || beat.kind === "section") return (1300 + Math.random() * 3400) * deviceDrift;
         if (beat.kind === "quote") return (1200 + Math.random() * 3000) * deviceDrift;
         return (700 + Math.random() * 3000) * deviceDrift;
@@ -457,21 +471,21 @@
     }
 
     function randomTypingSpeeds() {
-      return beats.map(beat => {
+      return beats.map(function (beat) {
         if (beat.kind === "title" || beat.kind === "section") return (24 + Math.random() * 76) * deviceDrift;
         if (beat.kind === "quote") return (12 + Math.random() * 46) * deviceDrift;
         return (5 + Math.random() * 28) * deviceDrift;
       });
     }
 
-    function render(typeIt = false) {
-      const item = beats[index];
-      beatEl.className = `beat ${item.kind}`;
+    function render(typeIt) {
+      var item = beats[index];
+      beatEl.className = "beat " + item.kind;
       beatEl.setAttribute("aria-label", item.text);
       beatEl.style.animation = "none";
       void beatEl.offsetWidth;
       beatEl.style.animation = "";
-      beatEl.innerHTML = `<p aria-hidden="true">${typeIt ? '<span class="typed"></span><span class="caret"></span>' : item.text}</p>`;
+      beatEl.innerHTML = '<p aria-hidden="true">' + (typeIt ? '<span class="typed"></span><span class="caret"></span>' : item.text) + '</p>';
       character = typeIt ? 0 : item.text.length;
       readingEl.scrollTop = 0;
     }
@@ -485,7 +499,7 @@
       if (!playing) return;
 
       if (phase === "typing") {
-        const typed = beatEl.querySelector(".typed");
+        var typed = beatEl.querySelector(".typed");
         if (character < beats[index].text.length) {
           character += 1;
           typed.textContent = beats[index].text.slice(0, character);
@@ -493,11 +507,12 @@
           timer = setTimeout(schedule, typingSpeeds[index] + Math.random() * 36);
           return;
         }
-        beatEl.querySelector(".caret")?.remove();
+        var caret = beatEl.querySelector(".caret");
+        if (caret && caret.parentNode) caret.parentNode.removeChild(caret);
         phase = "holding";
       }
 
-      timer = setTimeout(() => {
+      timer = setTimeout(function () {
         if (index === beats.length - 1) {
           phase = "looping";
           timer = setTimeout(begin, 800 + Math.random() * 2600);
@@ -522,14 +537,18 @@
       schedule();
     }
 
-    playEl.addEventListener("click", () => {
-      if (!playing && phase === "idle") { begin(); return; }
+    playEl.addEventListener("click", function () {
+      if (!playing && phase === "idle") {
+        begin();
+        return;
+      }
       playing = !playing;
       updateControls();
       schedule();
     });
-    document.addEventListener("keydown", event => {
-      if (event.code !== "Space" || event.repeat || event.target.tagName === "BUTTON") return;
+
+    document.addEventListener("keydown", function (event) {
+      if (event.keyCode !== 32 || event.repeat || event.target.tagName === "BUTTON") return;
       event.preventDefault();
       playEl.click();
     });
