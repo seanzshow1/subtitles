@@ -23,6 +23,8 @@
       background: #000;
     }
     .reading {
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
       display: flex;
@@ -102,9 +104,9 @@
     }
     @keyframes blink { 50% { opacity: 0; } }
     @media (orientation: landscape) {
-      .reading { padding: 2rem clamp(4rem, 13vw, 12rem) 5rem; }
+      .reading { padding: 2rem clamp(3rem, 12vw, 10rem) 5rem; }
       .beat { max-width: 62rem; }
-      .beat p { font-size: clamp(1.35rem, 2.7vw, 1.8rem); line-height: 1.42; }
+      .beat p { font-size: clamp(1.35rem, 2.7vw, 1.85rem); line-height: 1.42; }
       .beat.title p, .beat.section p { font-size: clamp(2.8rem, 6vw, 5rem); }
       .beat.quote p { font-size: clamp(1.9rem, 4vw, 3rem); }
     }
@@ -444,20 +446,21 @@
     let typingSpeeds = [];
     let character = 0;
     let phase = "idle";
+    const deviceDrift = .7 + Math.random() * .8;
 
     function randomHoldTimes() {
       return beats.map(beat => {
-        if (beat.kind === "title" || beat.kind === "section") return 1900 + Math.random() * 1600;
-        if (beat.kind === "quote") return 1800 + Math.random() * 1400;
-        return 1200 + Math.random() * 1300;
+        if (beat.kind === "title" || beat.kind === "section") return (1300 + Math.random() * 3400) * deviceDrift;
+        if (beat.kind === "quote") return (1200 + Math.random() * 3000) * deviceDrift;
+        return (700 + Math.random() * 3000) * deviceDrift;
       });
     }
 
     function randomTypingSpeeds() {
       return beats.map(beat => {
-        if (beat.kind === "title" || beat.kind === "section") return 30 + Math.random() * 50;
-        if (beat.kind === "quote") return 14 + Math.random() * 32;
-        return 7 + Math.random() * 17;
+        if (beat.kind === "title" || beat.kind === "section") return (24 + Math.random() * 76) * deviceDrift;
+        if (beat.kind === "quote") return (12 + Math.random() * 46) * deviceDrift;
+        return (5 + Math.random() * 28) * deviceDrift;
       });
     }
 
@@ -487,7 +490,7 @@
           character += 1;
           typed.textContent = beats[index].text.slice(0, character);
           readingEl.scrollTop = readingEl.scrollHeight;
-          timer = setTimeout(schedule, typingSpeeds[index] + Math.random() * 24);
+          timer = setTimeout(schedule, typingSpeeds[index] + Math.random() * 36);
           return;
         }
         beatEl.querySelector(".caret")?.remove();
@@ -496,9 +499,8 @@
 
       timer = setTimeout(() => {
         if (index === beats.length - 1) {
-          playing = false;
-          phase = "done";
-          updateControls();
+          phase = "looping";
+          timer = setTimeout(begin, 800 + Math.random() * 2600);
           return;
         }
         index += 1;
@@ -521,7 +523,7 @@
     }
 
     playEl.addEventListener("click", () => {
-      if (!playing && (phase === "idle" || phase === "done")) { begin(); return; }
+      if (!playing && phase === "idle") { begin(); return; }
       playing = !playing;
       updateControls();
       schedule();
@@ -532,10 +534,7 @@
       playEl.click();
     });
 
-    holdTimes = randomHoldTimes();
-    typingSpeeds = randomTypingSpeeds();
-    render();
-    updateControls();
+    begin();
   </script>
 </body>
 </html>
