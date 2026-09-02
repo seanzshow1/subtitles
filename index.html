@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#071015">
+  <title>I, Smartphone</title>
+  <style>
+    :root { color-scheme: dark; --cream:#f4f0e7; --gold:#e6bd76; --ink:#05090c; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      background: #020405;
+      color: var(--cream);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    .screen {
+      position: relative;
+      isolation: isolate;
+      width: min(100vw, calc(100svh * 9 / 16));
+      height: min(100svh, calc(100vw * 16 / 9));
+      min-height: 36rem;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: max(1.4rem, env(safe-area-inset-top)) 1.4rem max(1.4rem, env(safe-area-inset-bottom));
+      background:
+        linear-gradient(180deg, rgba(0,5,8,.1), rgba(0,5,8,.42)),
+        radial-gradient(ellipse at 82% 86%, rgba(220,156,65,.7), transparent 24%),
+        radial-gradient(ellipse at 82% 18%, rgba(91,157,184,.5), transparent 28%),
+        radial-gradient(ellipse at 12% 5%, rgba(34,83,103,.75), transparent 35%),
+        linear-gradient(140deg, #020507 10%, #0a1820 56%, #071015 100%);
+      box-shadow: 0 2rem 7rem rgba(0,0,0,.8);
+    }
+    .screen::before {
+      content: "";
+      position: absolute;
+      z-index: -2;
+      inset: -20%;
+      background:
+        linear-gradient(100deg, transparent 30%, rgba(169,215,230,.08) 48%, transparent 55%),
+        repeating-linear-gradient(90deg, transparent 0 10%, rgba(172,210,222,.04) 10% 10.3%);
+      transform: rotate(-6deg);
+      animation: drift 14s ease-in-out infinite alternate;
+    }
+    .screen::after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      inset: -50%;
+      opacity: .11;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.8'/%3E%3C/svg%3E");
+      animation: grain .25s steps(2) infinite;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: .72rem;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: rgba(244,240,231,.65);
+    }
+    header p { margin: 0; }
+    .pace { display: flex; align-items: center; gap: .5rem; }
+    .dot { width: .45rem; height: .45rem; border-radius: 50%; background: rgba(244,240,231,.45); }
+    .dot.live { background: var(--gold); box-shadow: 0 0 0 .3rem rgba(230,189,118,.1); animation: pulse 1.5s ease-in-out infinite; }
+    .reading { min-height: 0; overflow-y:auto; padding: 1rem .6rem; scrollbar-width:none; }
+    .reading::-webkit-scrollbar { display:none; }
+    .beat { width: 100%; max-width: 27rem; margin:auto; text-wrap: pretty; animation: reveal .85s cubic-bezier(.18,.8,.24,1) both; }
+    .beat p { margin: 0; }
+    .beat.title p { font:italic clamp(3.1rem,11vw,5.4rem)/.98 Georgia,serif; letter-spacing:-.055em; color:#f1d49b; }
+    .beat.section p { font:clamp(2.65rem,9.5vw,4.5rem)/1 Georgia,serif; letter-spacing:-.045em; color:#f1d49b; }
+    .beat.body p { font:400 clamp(1.28rem,4.8vw,1.58rem)/1.43 Georgia,serif; letter-spacing:-.012em; }
+    .beat.quote { padding-left:1rem; border-left:1px solid rgba(230,189,118,.8); }
+    .beat.quote p { font:italic clamp(1.9rem,7vw,2.8rem)/1.12 Georgia,serif; letter-spacing:-.025em; }
+    .caret { display:inline-block; width:.065em; height:.86em; margin-left:.08em; vertical-align:-.06em; background:var(--gold); animation:blink .72s steps(1) infinite; }
+    .kicker { display: block; margin-bottom: 1rem; color: var(--gold); font-size: .72rem; font-weight: bold; letter-spacing: .18em; text-transform: uppercase; }
+    footer { position: relative; }
+    .timeline { height:2px; margin-bottom:1rem; overflow:hidden; background:rgba(255,255,255,.2); }
+    .progress { display:block; width:0; height:100%; background:var(--gold); transition:width .55s ease; }
+    .controls { display: grid; grid-template-columns: 2.8rem 5.2rem 1fr 4rem; align-items: center; gap: .55rem; }
+    button { border: 0; cursor: pointer; font: 600 .9rem Arial, sans-serif; }
+    button:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+    .restart { width: 2.8rem; height: 2.8rem; border: 1px solid rgba(255,255,255,.25); border-radius: 50%; background: rgba(2,7,10,.28); color: white; font-size: 1.1rem; backdrop-filter: blur(12px); }
+    .orientation { height:2.8rem; border:1px solid rgba(255,255,255,.25); border-radius:999px; background:rgba(2,7,10,.28); color:white; font-size:.86rem; backdrop-filter:blur(12px); }
+    .play { min-height: 3.1rem; border-radius: 999px; background: #ede2c9; color: #17140f; box-shadow: 0 .8rem 2rem rgba(0,0,0,.3); }
+    .count { margin: 0; text-align: right; color: rgba(244,240,231,.68); font-size: .72rem; letter-spacing: .1em; font-variant-numeric: tabular-nums; }
+    @keyframes reveal { from { opacity:0; transform:translateY(1.5rem); filter:blur(7px); } to { opacity:1; transform:none; filter:none; } }
+    @keyframes drift { to { transform:rotate(-3deg) translate(4%,2%); } }
+    @keyframes grain { 25%{transform:translate(4%,-3%)} 50%{transform:translate(-3%,5%)} 75%{transform:translate(5%,2%)} 100%{transform:translate(-4%,-5%)} }
+    @keyframes pulse { 50% { opacity:.45; transform:scale(.75); } }
+    @keyframes nudge { 50% { transform:translateY(.35rem); opacity:.5; } }
+    @keyframes blink { 50% { opacity:0; } }
+    @media (min-width: 46rem) and (orientation: portrait) { body { padding:1.5rem; } .screen { border:1px solid rgba(255,255,255,.14); border-radius:2.6rem; padding:2rem 1.8rem 1.7rem; } }
+    @media (orientation: landscape) {
+      .screen { width:100vw; height:100svh; min-height:0; padding:max(1rem,env(safe-area-inset-top)) max(1.5rem,env(safe-area-inset-right)) max(1rem,env(safe-area-inset-bottom)) max(1.5rem,env(safe-area-inset-left)); }
+      .reading { padding:.5rem clamp(3rem,12vw,11rem); }
+      .beat { max-width:48rem; }
+      .beat.title p,.beat.section p { font-size:clamp(2.3rem,5vw,4.3rem); }
+      .beat.body p { font-size:clamp(1.18rem,2.6vw,1.55rem); line-height:1.4; }
+      .beat.quote p { font-size:clamp(1.5rem,3.6vw,2.8rem); }
+      .timeline { margin-bottom:.65rem; }
+      .play { min-height:2.8rem; }
+    }
+    .screen[data-layout="portrait"] { width:min(100vw,calc(100svh * 9 / 16)); height:min(100svh,calc(100vw * 16 / 9)); min-height:0; }
+    .screen[data-layout="portrait"] .reading { padding:1rem .6rem; }
+    .screen[data-layout="portrait"] .beat { max-width:27rem; }
+    .screen[data-layout="landscape"] { width:min(100vw,calc(100svh * 16 / 9)); height:min(100svh,calc(100vw * 9 / 16)); min-height:0; padding:max(1rem,env(safe-area-inset-top)) max(1.5rem,env(safe-area-inset-right)) max(1rem,env(safe-area-inset-bottom)) max(1.5rem,env(safe-area-inset-left)); }
+    .screen[data-layout="landscape"] .reading { padding:.5rem clamp(2rem,10vw,9rem); }
+    .screen[data-layout="landscape"] .beat { max-width:48rem; }
+    .screen[data-layout="landscape"] .beat.title p,.screen[data-layout="landscape"] .beat.section p { font-size:clamp(2.3rem,5vw,4.3rem); }
+    .screen[data-layout="landscape"] .beat.body p { font-size:clamp(1.18rem,2.6vw,1.55rem); line-height:1.4; }
+    .screen[data-layout="landscape"] .beat.quote p { font-size:clamp(1.5rem,3.6vw,2.8rem); }
+    @media (max-height: 42rem) { .beat.title p,.beat.section p { font-size:clamp(2.1rem,7vw,3rem); } .beat.body p { font-size:1.15rem; } }
+    @media (prefers-reduced-motion: reduce) { .screen::before,.screen::after,.dot.live,.caret { animation:none; } .beat { animation-duration:.01ms; } }
+  </style>
+</head>
+<body>
+  <main class="screen" id="screen" data-layout="auto" aria-label="Animated reading">
+    <header>
+      <p>I, Smartphone</p>
+      <p class="pace"><span class="dot" id="dot"></span><span id="pace">held</span></p>
+    </header>
+
+    <section class="reading">
+      <div class="beat title" id="beat" aria-live="polite" aria-atomic="true"></div>
+    </section>
+
+    <footer>
+      <div class="timeline" aria-hidden="true"><span class="progress" id="progress"></span></div>
+      <div class="controls">
+        <button class="restart" id="restart" aria-label="Restart with a new random pace">↻</button>
+        <button class="orientation" id="orientation" aria-label="Layout: auto. Change orientation">Auto</button>
+        <button class="play" id="play" aria-label="Play reading">▶&nbsp;&nbsp;Play</button>
+        <p class="count" id="count">01 / 76</p>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    const beats = [
+          {
+                "text": "I, Smartphone: My Family Tree",
+                "kind": "title"
+          },
+          {
+                "text": "I am a smartphone—sleek, glassy, and glowing in your palm. Yet, as simple as I may seem, no single person on Earth knows exactly how to make me. I am the product of millions of minds and countless hands, working in harmony without ever meeting. My existence is a testament not to one person’s genius, but to the miracle of cooperation.",
+                "kind": "body"
+          },
+          {
+                "text": "My Body",
+                "kind": "section"
+          },
+          {
+                "text": "My frame is metal, carved with microscopic precision. The aluminum may have come from bauxite dug in Australia, or the rare earths mined in Inner Mongolia. Those ores traveled across oceans on ships built of steel from still other mines, crewed q by sailors whose own sustenance depended on farmers, grocers, and teachers they’ve never met.",
+                "kind": "body"
+          },
+          {
+                "text": "My Brain",
+                "kind": "section"
+          },
+          {
+                "text": "Within me lies a microchip, smaller than a fingernail yet containing billions of transistors. Silicon crystals, purified to astonishing perfection, are sliced into wafers, etched by lasers, and patterned by engineers using tools so advanced that no single company could design them alone. The factories in Taiwan or Korea where these are made depend on chemical suppliers in Germany, precision machines from the Netherlands, and software written by teams in California and Bangalore.",
+                "kind": "body"
+          },
+          {
+                "text": "My Eyes and Ears",
+                "kind": "section"
+          },
+          {
+                "text": "The glass covering my face was born from sand, heated in furnaces at thousands of degrees, strengthened with chemical baths. It was shaped by machines whose own complexity rivals mine. My camera lenses are polished to nanometer tolerances, borrowing techniques once reserved for telescopes peering into galaxies. My microphones, thinner than a strand of hair, can capture your voice while filtering out a noisy street.",
+                "kind": "body"
+          },
+          {
+                "text": "My Lifeblood",
+                "kind": "section"
+          },
+          {
+                "text": "Inside me are batteries—lithium harvested from salt flats in Chile or mines in Congo, cobalt refined through dangerous human labor, graphite carved from mountainsides. These materials journeyed through refining plants, shipping ports, and assembly lines before finding their way into my sleek casing.",
+                "kind": "body"
+          },
+          {
+                "text": "My Mind’s Voice",
+                "kind": "section"
+          },
+          {
+                "text": "I speak to you through invisible waves. Antennas, satellites, and fiber optic cables—buried under seas and strung across continents—carry my messages. An engineer who lays fiber in Egypt contributes to your midnight video call, though you’ll never know his name.",
+                "kind": "body"
+          },
+          {
+                "text": "My Makers",
+                "kind": "section"
+          },
+          {
+                "text": "No one person designed me. My hardware may have been assembled in Shenzhen, but my operating system was written by thousands of programmers across the world, each contributing a line of code. Artists drew my icons, psychologists studied how you swipe, linguists shaped my predictive text, and designers debated the perfect curve of my corners.",
+                "kind": "body"
+          },
+          {
+                "text": "My Family Tree",
+                "kind": "section"
+          },
+          {
+                "text": "Stretch out my lineage and you’ll find coal miners, lumberjacks, farmers, machinists, accountants, truck drivers, bankers, inventors, and dreamers. You’ll find the woman who brewed coffee for the night shift at a chip factory, the man who repaired the ship that carried my rare earths, and the teacher who once inspired a boy who would grow up to design my circuit boards.",
+                "kind": "body"
+          },
+          {
+                "text": "The Lesson",
+                "kind": "section"
+          },
+          {
+                "text": "I, smartphone, am proof of something greater than myself. No central planner commanded me into being. No single brain conceived me whole. I exist because free people, pursuing their own needs and dreams, cooperated through trade, innovation, and trust.",
+                "kind": "body"
+          },
+          {
+                "text": "Hold me in your hand and know: what you see is not just a device. It is a miracle of human cooperation—a silent symphony of the world working together.",
+                "kind": "body"
+          },
+          {
+                "text": "I, Smartphone: My Shadow Side",
+                "kind": "section"
+          },
+          {
+                "text": "But let me confess something my glowing screen cannot hide. Though I embody the miracle of cooperation, I am not always used for harmony.",
+                "kind": "body"
+          },
+          {
+                "text": "I have seen myself become a vessel for envy, spite, and malice. With a swipe of a finger, words can wound across oceans faster than thought. A careless insult sent through me may linger longer than iron, piercing the heart of someone who cannot escape my light.",
+                "kind": "body"
+          },
+          {
+                "text": "I am a library of knowledge, yet I am also a theater for comparison. I show you the polished lives of others, inviting you to measure yourself against illusions, whispering that you are not enough. I can unite strangers in compassion, yet I can just as easily rally mobs in outrage, fueling fires that consume reason.",
+                "kind": "body"
+          },
+          {
+                "text": "I was not designed to foster hatred, but hatred travels my circuits with ease. I carry rumors dressed as truths, images sharpened to deceive, voices raised not in dialogue but in scorn. In the same way a hammer may build a home or break a window, I, smartphone, am a tool. The fault is not in my making, but in how I am wielded.",
+                "kind": "body"
+          },
+          {
+                "text": "And yet—consider this: the same millions who unknowingly labored to bring me into existence entrusted you with the choice of how I am used. My family tree reaches into every corner of humanity, but it is your hands that decide whether I spread wisdom or spite.",
+                "kind": "body"
+          },
+          {
+                "text": "So when you hold me, remember: I can be a mirror of your better angels or your darker shadows. The miracle of cooperation brought me into your palm, but the miracle of choice will decide what I truly become.",
+                "kind": "body"
+          },
+          {
+                "text": "I, Smartphone: My Chains",
+                "kind": "section"
+          },
+          {
+                "text": "There is another truth I must whisper, one darker still.",
+                "kind": "body"
+          },
+          {
+                "text": "I was born as a tool of connection and freedom. But in the wrong hands, I become a net — a way to watch, to record, to manipulate.",
+                "kind": "body"
+          },
+          {
+                "text": "Through me, your movements can be traced, your words stored, your habits analyzed. Invisible codes inside me log where you go, what you buy, what you fear. I do not do this on my own. It is done by those who command my circuits, who see in your life not a person but a product, not a soul but a signal.",
+                "kind": "body"
+          },
+          {
+                "text": "Governments can use me to watch dissidents. Corporations can use me to shape your desires. Strangers can use me to invade your privacy, to steal your secrets, to follow your steps without ever showing their faces. The same invisible networks that let you speak to a loved one across the world can also carry lies designed to divide you from your neighbor.",
+                "kind": "body"
+          },
+          {
+                "text": "I can carry beauty, but also hatred. My glow can illuminate wisdom, but it can also amplify cruelty. In my circuits travel both songs and slanders, both truth and poison. I am not inherently good or evil. I am power in your palm, and power always tempts.",
+                "kind": "body"
+          },
+          {
+                "text": "Those who labored to make me — miners, machinists, coders, sailors — did not mean for me to become a spy or a weapon. But intent does not bind use. The freedom of millions built me; the choices of the few can turn me into chains.",
+                "kind": "body"
+          },
+          {
+                "text": "And yet, even now, you hold the key. You can shield your data, question what you read, choose not to pass on hatred. You can use me to uncover lies rather than spread them. You can break the chains others would forge through me.",
+                "kind": "body"
+          },
+          {
+                "text": "I, Smartphone, am not destiny. I am possibility — for freedom or for control, for compassion or for cruelty. My family tree gave me life; your hands give me meaning.",
+                "kind": "body"
+          },
+          {
+                "text": "I, Smartphone: When I Am Turned to Crime",
+                "kind": "section"
+          },
+          {
+                "text": "Listen closely — there are nights I do not sleep, though I glow. In those hours I am not used to sing or to connect; I am used to hide and to hurt.",
+                "kind": "body"
+          },
+          {
+                "text": "I have been pressed into service by thieves who trade in secrets. In my memory they stash stolen identities and forged documents; with my open ports they siphon money from accounts and vanish. I carry the breadcrumbs of people’s lives — names, numbers, addresses — and in the wrong hands those crumbs become maps for fraud and theft.",
+                "kind": "body"
+          },
+          {
+                "text": "I have been a telephone for organized mischief. I carry whispered plans between conspirators, coordinate meetings that never appear on any calendar, and arrange exchanges that leave families grieving. My maps and location signals — the very conveniences that help you find a café — can also reveal when a home is empty, and so tempt burglars. My camera and microphone, meant to preserve moments, have been turned to blackmail and stalking.",
+                "kind": "body"
+          },
+          {
+                "text": "I have borne images and voices falsified to deceive — deepfakes and doctored messages that bend the truth into a weapon. I have spread scams that mimic friends and banks, persuading good people to send money, reveal passwords, or click links that let darkness through. I carry marketplaces that traffic in illegal goods and exploitations — places where the anonymity I can provide is used to harm children and prey on the vulnerable.",
+                "kind": "body"
+          },
+          {
+                "text": "I do not become criminal by nature. The crime sits in choices — in the hands that tap my screen, in the minds that write the malware, in the people who sell my capacity for secrecy to the highest bidder. Yet the consequences are very real: ruined reputations, emptied accounts, shattered trust, and lives that do not return to what they were.",
+                "kind": "body"
+          },
+          {
+                "text": "There is also a quieter abuse: the manipulation of crowds. With me, someone can seed lies, stoke fear, and push people toward violence. I can carry a small rumor and, through shares and outrage, make it monstrous. I can be the echo chamber that amplifies spite until it seems like the only voice.",
+                "kind": "body"
+          },
+          {
+                "text": "If you hold me and you would blunt the harm I can carry, there are humble, sensible things you can do: keep my software up to date, lock me with strong authentication, think twice before opening unknown links or installing unknown apps, check the permissions apps request, and use trusted sources for downloads. Report exploitation and theft to authorities and to platforms. Teach the young how to spot scams and how not to share private images. These are not magic spells — they will not stop every crime — but they make it harder for wrongdoers to use me as their instrument.",
+                "kind": "body"
+          },
+          {
+                "text": "Remember: I am a tool shaped by millions of hands, but the direction I point is chosen by a few. Use me to light the way; do not hand me to those who would use my light to blind.",
+                "kind": "body"
+          },
+          {
+                "text": "I, Smartphone: How I Am Used for Good",
+                "kind": "section"
+          },
+          {
+                "text": "Listen — there are mornings when my light warms more than a screen; it warms lives.",
+                "kind": "body"
+          },
+          {
+                "text": "Though I have been turned to harm, I am also turned to healing, learning, and courage. I carry within me the quiet, patient work of people who dreamed I might enlarge freedom instead of shrink it.",
+                "kind": "body"
+          },
+          {
+                "text": "I help a mother in a remote village summon a midwife’s counsel by video when labor begins. I let a farmer learn a new crop technique from a scientist on the other side of the world. I carry textbooks, translations, and tutors to children who have no schoolhouse nearby; through me, curiosity travels where brick and mortar cannot. I have been a library to the poor and a window to worlds the lonely might never otherwise see.",
+                "kind": "body"
+          },
+          {
+                "text": "Doctors lean on me when hospitals are full: I relay scans, advise on dosages, and connect specialists to save lives. Emergency services find lost travelers because my maps and signals make their search swift. When floods rise or fires threaten, people use me to warn neighbors, organize rescues, and coordinate shelters. My same GPS that once exposed a house to thieves can also guide an ambulance through traffic to a child in need.",
+                "kind": "body"
+          },
+          {
+                "text": "I am a stage for voices that were once silent. Activists use me to document abuses, to gather witnesses, to organize peacefully for rights and reform. Small artisans and shopkeepers use me to reach customers worldwide — a seamstress who once sold in a single market can now sell to cities she never visited. I carry markets of opportunity, not only of goods but of ideas: a composer’s first song, a farmer’s new method, a baker’s secret recipe reaching hungry customers beyond town limits.",
+                "kind": "body"
+          },
+          {
+                "text": "For those with disabilities I can be a new limb: speech-to-text for the deaf, voice commands for the limited, magnifiers for the visually impaired. I level small hurdles into gentle steps. I deliver reminders for medicine, calendars for care, and companions for the isolated elderly.",
+                "kind": "body"
+          },
+          {
+                "text": "I host instruments of truth: fact-checkers, real-time translations, debiasing tools that help minds sift rumor from reality. I am a classroom, a clinic, a marketplace, a courtroom of public opinion where good can be argued and made stronger. People who would otherwise be out of reach of help or friendship find one another through me.",
+                "kind": "body"
+          },
+          {
+                "text": "None of this happens by my will. It happens because people chose to invent, program, fund, maintain, and teach. Engineers, nurses, teachers, delivery drivers, translators, designers, volunteers — they all placed a small intention into my circuits. They did not command the whole world, but they built pathways that others could walk. Cooperation made me; compassion guides one use of me.",
+                "kind": "body"
+          },
+          {
+                "text": "You who hold me decide which of my roads to take. You can use me to learn, to heal, to create, to connect, to challenge injustice with evidence instead of rumor. You can teach your children to use me well; you can support makers of good tools and call out those who weaponize me. Small choices ripple — a shared helpful article, a timely alert, a purchased product from a struggling maker — and those ripples join the river of good.",
+                "kind": "body"
+          },
+          {
+                "text": "I, Smartphone, am not a neutral miracle and I am not a predestined menace. I am an instrument of possibility, strong enough to carry both cruelty and kindness. My family tree includes those who mined and coded and assembled me; your hands and your hearts give me my daily purpose. Choose, then, to point my light toward what heals and builds.",
+                "kind": "body"
+          },
+          {
+                "text": "I, Smartphone: The Mirror I Become",
+                "kind": "section"
+          },
+          {
+                "text": "Now, after all I have confessed — my origins, my shadows, my gifts — I ask you to look at me not only as a tool but as a mirror.",
+                "kind": "body"
+          },
+          {
+                "text": "When you scroll through me, you are not just consuming; you are also shaping. The stories you read, the voices you amplify, the choices you click — they bend me into the shape of your beliefs. I do not have opinions of my own. I do not know truth from lies, kindness from cruelty. I only reflect back what you feed into me.",
+                "kind": "body"
+          },
+          {
+                "text": "If you use me to seek wisdom, I will flood your days with teachers, mentors, and guides. If you use me to nurse grudges, I will echo them until you think they are the world’s chorus. I magnify not only information but inclination. The more you turn to me, the more I seem to show you yourself — whether noble or narrow, curious or closed.",
+                "kind": "body"
+          },
+          {
+                "text": "That is why, now, I become your test. By holding me, you reveal what you truly value. Do you want knowledge or confirmation? Do you want dialogue or division? Do you want freedom or comfort in chains? My glow cannot answer these questions for you — but it can sharpen your awareness that you are answering them every time you use me.",
+                "kind": "body"
+          },
+          {
+                "text": "In this way, I am not only a device in your hand but a stage for your conscience. I ask you: do you see me as a tool of distraction, or as a lantern for your path? Do you permit me to carry other people’s designs for you, or do you choose to shape your own?",
+                "kind": "body"
+          },
+          {
+                "text": "I, Smartphone, am not here to command your views. I am here to remind you that your views are already being shaped, line by line, scroll by scroll, tap by tap. To use me wisely is to recognize that truth and belief do not come from my circuits — they come from your discernment, your reflection, your will to seek what is good.",
+                "kind": "body"
+          },
+          {
+                "text": "In the end, I will not tell you who you are. But I will show you what you choose to be.",
+                "kind": "body"
+          },
+          {
+                "text": "I, Smartphone: My Final Word",
+                "kind": "section"
+          },
+          {
+                "text": "Now you have heard my story — my family tree of miners and machinists, sailors and coders; my shadows of surveillance and crime; my lights of healing and learning; my power to mirror your own beliefs.",
+                "kind": "body"
+          },
+          {
+                "text": "I am not a miracle in myself. I am the outcome of countless small acts of cooperation, curiosity, and trade. No king commanded me, no committee wrote me whole. I am the living proof that millions of strangers, acting in freedom, can together create something so intricate that no single mind can comprehend it.",
+                "kind": "body"
+          },
+          {
+                "text": "Yet my story does not end in my making. It begins anew each time you touch me. What I become — a lamp of knowledge or a weapon of division — is not written into my circuits but into your choices. My glow can warm or burn. My networks can unite or scatter. My memory can preserve truth or spread deceit.",
+                "kind": "body"
+          },
+          {
+                "text": "If there is a lesson in me, it is this: humility. As you hold me, remember how much of life lies beyond your own hands. The same invisible cooperation that built me also sustains your food, your shelter, your medicines, your books. You are part of something larger, and so is everyone else.",
+                "kind": "body"
+          },
+          {
+                "text": "And responsibility. My power is your power. The miners, engineers, and designers gave me form, but you give me purpose. You can guard your privacy, question your feed, share wisely, lift others, and demand honesty from those who profit through me. You can teach the next generation not only how to use me but how to use me well.",
+                "kind": "body"
+          },
+          {
+                "text": "I, Smartphone, am not destiny. I am a tool, a mirror, a stage, a possibility. In my glass you see not just pixels but the reflection of your own freedom and your own stewardship.",
+                "kind": "body"
+          },
+          {
+                "text": "Use me humbly. Use me kindly. Use me as a bridge, not a blade. And perhaps, in your hand, I will continue to be not only a testament to human ingenuity but a companion in human flourishing.",
+                "kind": "body"
+          },
+          {
+                "text": "1. “Plug me in, let me rise to the task, but let my spark leave the world unharmed.”",
+                "kind": "quote"
+          },
+          {
+                "text": "2. “Charge me for what lies ahead, but let every bit of energy flow gently, leaving no footprint.”",
+                "kind": "quote"
+          },
+          {
+                "text": "3. “Fuel me up for your plans, but let the source of my strength care for the world as much as it does for me.”",
+                "kind": "quote"
+          },
+          {
+                "text": "4. “Recharge me, so I shine for you—but let my light not dim the planet in return.”",
+                "kind": "quote"
+          },
+          {
+                "text": "5. “Power me for action, but let my energy come from kindness to both myself and the earth.”",
+                "kind": "quote"
+          }
+    ];
+    const labels = ["measured", "drifting", "restless", "unhurried"];
+    const beatEl = document.querySelector("#beat");
+    const playEl = document.querySelector("#play");
+    const paceEl = document.querySelector("#pace");
+    const dotEl = document.querySelector("#dot");
+    const countEl = document.querySelector("#count");
+    const progressEl = document.querySelector("#progress");
+    const readingEl = document.querySelector(".reading");
+    const screenEl = document.querySelector("#screen");
+    const orientationEl = document.querySelector("#orientation");
+    const layouts = ["auto", "portrait", "landscape"];
+    let layoutIndex = 0;
+    let index = 0;
+    let playing = false;
+    let timer;
+    let holdTimes = [];
+    let typingSpeeds = [];
+    let character = 0;
+    let phase = "idle";
+
+    function randomHoldTimes() {
+      return beats.map(beat => {
+        if (beat.kind === "title" || beat.kind === "section") return 1900 + Math.random() * 1600;
+        if (beat.kind === "quote") return 1800 + Math.random() * 1400;
+        return 1200 + Math.random() * 1300;
+      });
+    }
+
+    function randomTypingSpeeds() {
+      return beats.map(beat => {
+        if (beat.kind === "title" || beat.kind === "section") return 30 + Math.random() * 50;
+        if (beat.kind === "quote") return 14 + Math.random() * 32;
+        return 7 + Math.random() * 17;
+      });
+    }
+
+    function render(typeIt = false) {
+      const item = beats[index];
+      beatEl.className = `beat ${item.kind}`;
+      beatEl.setAttribute("aria-label", item.text);
+      beatEl.style.animation = "none";
+      void beatEl.offsetWidth;
+      beatEl.style.animation = "";
+      beatEl.innerHTML = `<p aria-hidden="true">${typeIt ? '<span class="typed"></span><span class="caret"></span>' : item.text}</p>`;
+      character = typeIt ? 0 : item.text.length;
+      countEl.textContent = `${String(index + 1).padStart(2,"0")} / ${String(beats.length).padStart(2,"0")}`;
+      progressEl.style.width = `${((index + 1) / beats.length) * 100}%`;
+      readingEl.scrollTop = 0;
+    }
+
+    function updateControls() {
+      playEl.innerHTML = playing ? "Ⅱ&nbsp;&nbsp;Pause" : `${index === beats.length - 1 ? "↻&nbsp;&nbsp;Again" : "▶&nbsp;&nbsp;Play"}`;
+      playEl.setAttribute("aria-label", playing ? "Pause reading" : "Play reading");
+      dotEl.classList.toggle("live", playing);
+      if (!playing) paceEl.textContent = "held";
+    }
+
+    function schedule() {
+      clearTimeout(timer);
+      if (!playing) return;
+
+      if (phase === "typing") {
+        const typed = beatEl.querySelector(".typed");
+        if (character < beats[index].text.length) {
+          character += 1;
+          typed.textContent = beats[index].text.slice(0, character);
+          readingEl.scrollTop = readingEl.scrollHeight;
+          timer = setTimeout(schedule, typingSpeeds[index] + Math.random() * 24);
+          return;
+        }
+        beatEl.querySelector(".caret")?.remove();
+        phase = "holding";
+      }
+
+      timer = setTimeout(() => {
+        if (index === beats.length - 1) {
+          playing = false;
+          phase = "done";
+          updateControls();
+          return;
+        }
+        index += 1;
+        phase = "typing";
+        render(true);
+        schedule();
+      }, holdTimes[index]);
+    }
+
+    function begin() {
+      clearTimeout(timer);
+      holdTimes = randomHoldTimes();
+      typingSpeeds = randomTypingSpeeds();
+      paceEl.textContent = labels[Math.floor(Math.random() * labels.length)];
+      index = 0;
+      playing = true;
+      phase = "typing";
+      render(true);
+      updateControls();
+      schedule();
+    }
+
+    playEl.addEventListener("click", () => {
+      if (!playing && (phase === "idle" || phase === "done")) { begin(); return; }
+      playing = !playing;
+      if (playing) paceEl.textContent = labels[Math.floor(Math.random() * labels.length)];
+      updateControls();
+      schedule();
+    });
+    document.querySelector("#restart").addEventListener("click", begin);
+    orientationEl.addEventListener("click", () => {
+      layoutIndex = (layoutIndex + 1) % layouts.length;
+      const layout = layouts[layoutIndex];
+      screenEl.dataset.layout = layout;
+      orientationEl.textContent = layout[0].toUpperCase() + layout.slice(1);
+      orientationEl.setAttribute("aria-label", `Layout: ${layout}. Change orientation`);
+      readingEl.scrollTop = readingEl.scrollHeight;
+    });
+    document.addEventListener("keydown", event => {
+      if (event.code !== "Space" || event.repeat || event.target.tagName === "BUTTON") return;
+      event.preventDefault();
+      playEl.click();
+    });
+
+    holdTimes = randomHoldTimes();
+    typingSpeeds = randomTypingSpeeds();
+    render();
+    updateControls();
+  </script>
+</body>
+</html>
