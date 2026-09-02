@@ -6,141 +6,125 @@
   <meta name="theme-color" content="#071015">
   <title>I, Smartphone</title>
   <style>
-    :root { color-scheme: dark; --cream:#f4f0e7; --gold:#e6bd76; --ink:#05090c; }
+    :root { color-scheme: dark; }
     * { box-sizing: border-box; }
-    html, body { height: 100%; }
+    html, body { width: 100%; height: 100%; }
     body {
       margin: 0;
-      display: grid;
-      place-items: center;
       overflow: hidden;
-      background: #020405;
-      color: var(--cream);
-      font-family: Arial, Helvetica, sans-serif;
+      background: #000;
+      color: #f4f4f1;
     }
     .screen {
       position: relative;
-      isolation: isolate;
-      width: min(100vw, calc(100svh * 9 / 16));
-      height: min(100svh, calc(100vw * 16 / 9));
-      min-height: 36rem;
+      width: 100vw;
+      height: 100svh;
       overflow: hidden;
-      display: grid;
-      grid-template-rows: auto 1fr auto;
-      padding: max(1.4rem, env(safe-area-inset-top)) 1.4rem max(1.4rem, env(safe-area-inset-bottom));
-      background:
-        linear-gradient(180deg, rgba(0,5,8,.1), rgba(0,5,8,.42)),
-        radial-gradient(ellipse at 82% 86%, rgba(220,156,65,.7), transparent 24%),
-        radial-gradient(ellipse at 82% 18%, rgba(91,157,184,.5), transparent 28%),
-        radial-gradient(ellipse at 12% 5%, rgba(34,83,103,.75), transparent 35%),
-        linear-gradient(140deg, #020507 10%, #0a1820 56%, #071015 100%);
-      box-shadow: 0 2rem 7rem rgba(0,0,0,.8);
+      background: #000;
     }
-    .screen::before {
-      content: "";
-      position: absolute;
-      z-index: -2;
-      inset: -20%;
-      background:
-        linear-gradient(100deg, transparent 30%, rgba(169,215,230,.08) 48%, transparent 55%),
-        repeating-linear-gradient(90deg, transparent 0 10%, rgba(172,210,222,.04) 10% 10.3%);
-      transform: rotate(-6deg);
-      animation: drift 14s ease-in-out infinite alternate;
-    }
-    .screen::after {
-      content: "";
-      position: absolute;
-      z-index: -1;
-      inset: -50%;
-      opacity: .11;
-      pointer-events: none;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.8'/%3E%3C/svg%3E");
-      animation: grain .25s steps(2) infinite;
-    }
-    header {
+    .reading {
+      width: 100%;
+      height: 100%;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: .72rem;
-      letter-spacing: .16em;
-      text-transform: uppercase;
-      color: rgba(244,240,231,.65);
+      overflow-y: auto;
+      padding: clamp(2rem, 8vw, 5rem) clamp(1.5rem, 7vw, 5rem) 6rem;
+      scrollbar-width: none;
     }
-    header p { margin: 0; }
-    .pace { display: flex; align-items: center; gap: .5rem; }
-    .dot { width: .45rem; height: .45rem; border-radius: 50%; background: rgba(244,240,231,.45); }
-    .dot.live { background: var(--gold); box-shadow: 0 0 0 .3rem rgba(230,189,118,.1); animation: pulse 1.5s ease-in-out infinite; }
-    .reading { min-height: 0; overflow-y:auto; padding: 1rem .6rem; scrollbar-width:none; }
-    .reading::-webkit-scrollbar { display:none; }
-    .beat { width: 100%; max-width: 27rem; margin:auto; text-wrap: pretty; animation: reveal .85s cubic-bezier(.18,.8,.24,1) both; }
-    .beat p { margin: 0; }
-    .beat.title p { font:italic clamp(3.1rem,11vw,5.4rem)/.98 Georgia,serif; letter-spacing:-.055em; color:#f1d49b; }
-    .beat.section p { font:clamp(2.65rem,9.5vw,4.5rem)/1 Georgia,serif; letter-spacing:-.045em; color:#f1d49b; }
-    .beat.body p { font:400 clamp(1.28rem,4.8vw,1.58rem)/1.43 Georgia,serif; letter-spacing:-.012em; }
-    .beat.quote { padding-left:1rem; border-left:1px solid rgba(230,189,118,.8); }
-    .beat.quote p { font:italic clamp(1.9rem,7vw,2.8rem)/1.12 Georgia,serif; letter-spacing:-.025em; }
-    .caret { display:inline-block; width:.065em; height:.86em; margin-left:.08em; vertical-align:-.06em; background:var(--gold); animation:blink .72s steps(1) infinite; }
-    .kicker { display: block; margin-bottom: 1rem; color: var(--gold); font-size: .72rem; font-weight: bold; letter-spacing: .18em; text-transform: uppercase; }
-    footer { position: relative; }
-    .timeline { height:2px; margin-bottom:1rem; overflow:hidden; background:rgba(255,255,255,.2); }
-    .progress { display:block; width:0; height:100%; background:var(--gold); transition:width .55s ease; }
-    .controls { display: grid; grid-template-columns: 2.8rem 5.2rem 1fr 4rem; align-items: center; gap: .55rem; }
-    button { border: 0; cursor: pointer; font: 600 .9rem Arial, sans-serif; }
-    button:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
-    .restart { width: 2.8rem; height: 2.8rem; border: 1px solid rgba(255,255,255,.25); border-radius: 50%; background: rgba(2,7,10,.28); color: white; font-size: 1.1rem; backdrop-filter: blur(12px); }
-    .orientation { height:2.8rem; border:1px solid rgba(255,255,255,.25); border-radius:999px; background:rgba(2,7,10,.28); color:white; font-size:.86rem; backdrop-filter:blur(12px); }
-    .play { min-height: 3.1rem; border-radius: 999px; background: #ede2c9; color: #17140f; box-shadow: 0 .8rem 2rem rgba(0,0,0,.3); }
-    .count { margin: 0; text-align: right; color: rgba(244,240,231,.68); font-size: .72rem; letter-spacing: .1em; font-variant-numeric: tabular-nums; }
-    @keyframes reveal { from { opacity:0; transform:translateY(1.5rem); filter:blur(7px); } to { opacity:1; transform:none; filter:none; } }
-    @keyframes drift { to { transform:rotate(-3deg) translate(4%,2%); } }
-    @keyframes grain { 25%{transform:translate(4%,-3%)} 50%{transform:translate(-3%,5%)} 75%{transform:translate(5%,2%)} 100%{transform:translate(-4%,-5%)} }
-    @keyframes pulse { 50% { opacity:.45; transform:scale(.75); } }
-    @keyframes nudge { 50% { transform:translateY(.35rem); opacity:.5; } }
-    @keyframes blink { 50% { opacity:0; } }
-    @media (min-width: 46rem) and (orientation: portrait) { body { padding:1.5rem; } .screen { border:1px solid rgba(255,255,255,.14); border-radius:2.6rem; padding:2rem 1.8rem 1.7rem; } }
+    .reading::-webkit-scrollbar { display: none; }
+    .beat {
+      width: 100%;
+      max-width: 34rem;
+      margin: auto;
+      text-wrap: pretty;
+      animation: appear .35s ease-out both;
+    }
+    .beat p {
+      margin: 0;
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Baskerville, Georgia, "Times New Roman", serif;
+      font-weight: 400;
+      font-size: clamp(1.45rem, 5.2vw, 1.85rem);
+      line-height: 1.46;
+      letter-spacing: -.012em;
+    }
+    .beat.title p {
+      font-size: clamp(3.2rem, 11vw, 5.2rem);
+      line-height: .98;
+      letter-spacing: -.05em;
+    }
+    .beat.section p {
+      font-size: clamp(2.7rem, 9.5vw, 4.4rem);
+      line-height: 1;
+      letter-spacing: -.045em;
+    }
+    .beat.quote p {
+      font-size: clamp(2rem, 7vw, 3rem);
+      line-height: 1.16;
+      font-style: italic;
+      letter-spacing: -.025em;
+    }
+    .caret {
+      display: inline-block;
+      width: .055em;
+      height: .86em;
+      margin-left: .08em;
+      vertical-align: -.06em;
+      background: currentColor;
+      animation: blink .72s steps(1) infinite;
+    }
+    .play {
+      position: fixed;
+      z-index: 2;
+      left: 50%;
+      bottom: max(1.25rem, env(safe-area-inset-bottom));
+      width: 2.75rem;
+      height: 2.75rem;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      transform: translateX(-50%);
+      border: 0;
+      border-radius: 0;
+      background: #fff;
+      cursor: pointer;
+    }
+    .play:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+    .triangle {
+      width: 0;
+      height: 0;
+      margin-left: .18rem;
+      border-top: .46rem solid transparent;
+      border-bottom: .46rem solid transparent;
+      border-left: .72rem solid #000;
+    }
+    @keyframes appear {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes blink { 50% { opacity: 0; } }
     @media (orientation: landscape) {
-      .screen { width:100vw; height:100svh; min-height:0; padding:max(1rem,env(safe-area-inset-top)) max(1.5rem,env(safe-area-inset-right)) max(1rem,env(safe-area-inset-bottom)) max(1.5rem,env(safe-area-inset-left)); }
-      .reading { padding:.5rem clamp(3rem,12vw,11rem); }
-      .beat { max-width:48rem; }
-      .beat.title p,.beat.section p { font-size:clamp(2.3rem,5vw,4.3rem); }
-      .beat.body p { font-size:clamp(1.18rem,2.6vw,1.55rem); line-height:1.4; }
-      .beat.quote p { font-size:clamp(1.5rem,3.6vw,2.8rem); }
-      .timeline { margin-bottom:.65rem; }
-      .play { min-height:2.8rem; }
+      .reading { padding: 2rem clamp(4rem, 13vw, 12rem) 5rem; }
+      .beat { max-width: 62rem; }
+      .beat p { font-size: clamp(1.35rem, 2.7vw, 1.8rem); line-height: 1.42; }
+      .beat.title p, .beat.section p { font-size: clamp(2.8rem, 6vw, 5rem); }
+      .beat.quote p { font-size: clamp(1.9rem, 4vw, 3rem); }
     }
-    .screen[data-layout="portrait"] { width:min(100vw,calc(100svh * 9 / 16)); height:min(100svh,calc(100vw * 16 / 9)); min-height:0; }
-    .screen[data-layout="portrait"] .reading { padding:1rem .6rem; }
-    .screen[data-layout="portrait"] .beat { max-width:27rem; }
-    .screen[data-layout="landscape"] { width:min(100vw,calc(100svh * 16 / 9)); height:min(100svh,calc(100vw * 9 / 16)); min-height:0; padding:max(1rem,env(safe-area-inset-top)) max(1.5rem,env(safe-area-inset-right)) max(1rem,env(safe-area-inset-bottom)) max(1.5rem,env(safe-area-inset-left)); }
-    .screen[data-layout="landscape"] .reading { padding:.5rem clamp(2rem,10vw,9rem); }
-    .screen[data-layout="landscape"] .beat { max-width:48rem; }
-    .screen[data-layout="landscape"] .beat.title p,.screen[data-layout="landscape"] .beat.section p { font-size:clamp(2.3rem,5vw,4.3rem); }
-    .screen[data-layout="landscape"] .beat.body p { font-size:clamp(1.18rem,2.6vw,1.55rem); line-height:1.4; }
-    .screen[data-layout="landscape"] .beat.quote p { font-size:clamp(1.5rem,3.6vw,2.8rem); }
-    @media (max-height: 42rem) { .beat.title p,.beat.section p { font-size:clamp(2.1rem,7vw,3rem); } .beat.body p { font-size:1.15rem; } }
-    @media (prefers-reduced-motion: reduce) { .screen::before,.screen::after,.dot.live,.caret { animation:none; } .beat { animation-duration:.01ms; } }
+    @media (max-height: 28rem) and (orientation: landscape) {
+      .reading { padding-top: 1.25rem; }
+      .beat p { font-size: clamp(1.2rem, 2.6vw, 1.55rem); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .beat, .caret { animation: none; }
+    }
   </style>
 </head>
 <body>
-  <main class="screen" id="screen" data-layout="auto" aria-label="Animated reading">
-    <header>
-      <p>I, Smartphone</p>
-      <p class="pace"><span class="dot" id="dot"></span><span id="pace">held</span></p>
-    </header>
-
+  <main class="screen" aria-label="Animated reading">
     <section class="reading">
       <div class="beat title" id="beat" aria-live="polite" aria-atomic="true"></div>
     </section>
-
-    <footer>
-      <div class="timeline" aria-hidden="true"><span class="progress" id="progress"></span></div>
-      <div class="controls">
-        <button class="restart" id="restart" aria-label="Restart with a new random pace">↻</button>
-        <button class="orientation" id="orientation" aria-label="Layout: auto. Change orientation">Auto</button>
-        <button class="play" id="play" aria-label="Play reading">▶&nbsp;&nbsp;Play</button>
-        <p class="count" id="count">01 / 76</p>
-      </div>
-    </footer>
+    <button class="play" id="play" aria-label="Play reading">
+      <span class="triangle" aria-hidden="true"></span>
+    </button>
   </main>
 
   <script>
@@ -450,18 +434,9 @@
                 "kind": "quote"
           }
     ];
-    const labels = ["measured", "drifting", "restless", "unhurried"];
     const beatEl = document.querySelector("#beat");
     const playEl = document.querySelector("#play");
-    const paceEl = document.querySelector("#pace");
-    const dotEl = document.querySelector("#dot");
-    const countEl = document.querySelector("#count");
-    const progressEl = document.querySelector("#progress");
     const readingEl = document.querySelector(".reading");
-    const screenEl = document.querySelector("#screen");
-    const orientationEl = document.querySelector("#orientation");
-    const layouts = ["auto", "portrait", "landscape"];
-    let layoutIndex = 0;
     let index = 0;
     let playing = false;
     let timer;
@@ -495,16 +470,11 @@
       beatEl.style.animation = "";
       beatEl.innerHTML = `<p aria-hidden="true">${typeIt ? '<span class="typed"></span><span class="caret"></span>' : item.text}</p>`;
       character = typeIt ? 0 : item.text.length;
-      countEl.textContent = `${String(index + 1).padStart(2,"0")} / ${String(beats.length).padStart(2,"0")}`;
-      progressEl.style.width = `${((index + 1) / beats.length) * 100}%`;
       readingEl.scrollTop = 0;
     }
 
     function updateControls() {
-      playEl.innerHTML = playing ? "Ⅱ&nbsp;&nbsp;Pause" : `${index === beats.length - 1 ? "↻&nbsp;&nbsp;Again" : "▶&nbsp;&nbsp;Play"}`;
       playEl.setAttribute("aria-label", playing ? "Pause reading" : "Play reading");
-      dotEl.classList.toggle("live", playing);
-      if (!playing) paceEl.textContent = "held";
     }
 
     function schedule() {
@@ -542,7 +512,6 @@
       clearTimeout(timer);
       holdTimes = randomHoldTimes();
       typingSpeeds = randomTypingSpeeds();
-      paceEl.textContent = labels[Math.floor(Math.random() * labels.length)];
       index = 0;
       playing = true;
       phase = "typing";
@@ -554,18 +523,8 @@
     playEl.addEventListener("click", () => {
       if (!playing && (phase === "idle" || phase === "done")) { begin(); return; }
       playing = !playing;
-      if (playing) paceEl.textContent = labels[Math.floor(Math.random() * labels.length)];
       updateControls();
       schedule();
-    });
-    document.querySelector("#restart").addEventListener("click", begin);
-    orientationEl.addEventListener("click", () => {
-      layoutIndex = (layoutIndex + 1) % layouts.length;
-      const layout = layouts[layoutIndex];
-      screenEl.dataset.layout = layout;
-      orientationEl.textContent = layout[0].toUpperCase() + layout.slice(1);
-      orientationEl.setAttribute("aria-label", `Layout: ${layout}. Change orientation`);
-      readingEl.scrollTop = readingEl.scrollHeight;
     });
     document.addEventListener("keydown", event => {
       if (event.code !== "Space" || event.repeat || event.target.tagName === "BUTTON") return;
